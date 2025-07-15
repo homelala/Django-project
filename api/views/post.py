@@ -1,7 +1,5 @@
-from django.db import transaction
-from django.db.models import F
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, filters, status
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -10,6 +8,7 @@ from api.serilalizers.serializers import PostSerializer, PostDetailSerializer, P
     CommentListSerializer, PostFilter
 from api.service.post import PostService
 from api.utils import prev_next_post
+
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
@@ -40,7 +39,7 @@ class PostViewSet(viewsets.ModelViewSet):
         # post.save()
 
         # post = PostService.like_with_f_transaction(pk)
-        post = PostService.like_with_db_transaction(pk)
+        # post = PostService.like_with_db_transaction(pk)
+        post = PostService.like_with_redis_lock(pk)
 
         return Response({"like": post.like}, status=status.HTTP_200_OK)
-

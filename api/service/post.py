@@ -1,8 +1,11 @@
+import redis
 from django.db import transaction
 from django.db.models import F
 
+from api.errors import RedisLockConflictException
 from api.model.models import Post
-
+import logging
+logger = logging.getLogger(__name__)
 
 class PostService:
     @classmethod
@@ -18,5 +21,27 @@ class PostService:
             post = Post.objects.select_for_update().get(pk=pk)
             post.like += 1
             post.save()
+
+        return post
+
+    @classmethod
+    def like_with_redis_lock(cls, pk):
+        lock_key = f"lock:post:like:{pk}"
+        redis_client = redis.Redis(host='localhost', port=6379, db=0)
+        LOCK_EXPIRE = 1
+
+        # Redis에 락 획득 시도 (setnx 방식)
+        have_lock = redis_client.set(lock_key, "locked", nx=True, ex=LOCK_EXPIRE)
+
+        if not have_lock:
+            logger.warning(f"[RedisLock] 중복 요청: post_id={pk}")
+            raise RedisLockConflictException("이미 처리 중입니다.", 429)
+        try:
+            # DB 원자적 처리
+            Post.objects.filter(pk=pk).update(like=F('like') + 1)
+            post = Post.objects.get(pk=pk)
+        finally:
+            # 락 해제
+            redis_client.delete(lock_key)
 
         return post
