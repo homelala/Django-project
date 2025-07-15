@@ -1,3 +1,5 @@
+from django.db import transaction
+from django.db.models import F
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
@@ -6,6 +8,7 @@ from rest_framework.response import Response
 from api.model.models import Post
 from api.serilalizers.serializers import PostSerializer, PostDetailSerializer, PostPrevNextSerializer, \
     CommentListSerializer, PostFilter
+from api.service.post import PostService
 from api.utils import prev_next_post
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -32,10 +35,12 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["patch"])
     def like(self, request, pk=None):
-        post = self.get_object()
-        post.like += 1
-        post.save()
+        # post = self.get_object()
+        # post.increase_like()
+        # post.save()
+
+        # post = PostService.like_with_f_transaction(pk)
+        post = PostService.like_with_db_transaction(pk)
+
         return Response({"like": post.like}, status=status.HTTP_200_OK)
-
-
 

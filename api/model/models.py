@@ -6,7 +6,10 @@ class Post(models.Model):
     tags = models.ManyToManyField('Tag', blank=True)
     content = models.TextField()
     like = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_created=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def increase_like(self):
+        self.like +=1
 
 class Category(models.Model):
     name = models.CharField(max_length=50, unique=True)
