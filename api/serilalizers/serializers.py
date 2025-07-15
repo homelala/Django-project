@@ -6,6 +6,7 @@ from api.model.models import Post, Comment, Category
 
 class PostSerializer(serializers.ModelSerializer):
     category = serializers.CharField(source="category.name", default="No Category")
+
     class Meta:
         model = Post
         fields = '__all__'
@@ -16,6 +17,7 @@ class CommentListSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ["content", "created_at"]
 
+
 class PostDetailSerializer(serializers.ModelSerializer):
     category = serializers.CharField(source="category.name", default="No Category")
     tags = serializers.SlugRelatedField(many=True, slug_field="name", read_only=True)
@@ -25,15 +27,18 @@ class PostDetailSerializer(serializers.ModelSerializer):
         model = Post
         fields = "__all__"
 
+
 class PostPrevNextSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ["title"]
 
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = '__all__'
+
 
 class PostFilter(django_filters.FilterSet):
     title = django_filters.CharFilter(lookup_expr='icontains')
